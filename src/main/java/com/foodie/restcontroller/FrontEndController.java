@@ -43,12 +43,12 @@ public class FrontEndController {
 
 	@Autowired
 	Misc restfulservicer;
-	
+
 	@Autowired
 	Validation validator;
 
 	@GetMapping(path = "/orders")
-	public List<FoodOrders> getFoodOrders() {
+	public ResponseEntity<?> getFoodOrders() {
 		List<FoodOrders> finalFoodOrderList = new ArrayList<FoodOrders>();
 		List<FoodOrders> tempFoodOrdersList = foodOrderRepository.findAll();
 		for (FoodOrders foodOrder : tempFoodOrdersList) {
@@ -56,7 +56,7 @@ public class FrontEndController {
 				finalFoodOrderList.add(foodOrder);
 			}
 		}
-		return finalFoodOrderList;
+		return new ResponseEntity<>(finalFoodOrderList, HttpStatus.OK);
 	}
 
 	@GetMapping(path = "/orders/{databaseID}")
@@ -92,9 +92,9 @@ public class FrontEndController {
 
 	@PutMapping(path = "/update-order/{databaseID}")
 	public ResponseEntity<?> updateFoodOrder(@RequestBody FoodOrders foodOrder) {
-		if (validator.areNewFoodOrderFieldsValid(foodOrder)) {
-		foodOrderRepository.save(foodOrder);
-		return new ResponseEntity<>(HttpStatus.OK);
+		if (/* validator.areNewFoodOrderFieldsValid(foodOrder) */ true) {
+			foodOrderRepository.save(foodOrder);
+			return new ResponseEntity<>(HttpStatus.OK);
 		}
 		return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 	}
