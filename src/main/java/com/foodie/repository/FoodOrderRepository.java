@@ -6,9 +6,6 @@ import org.springframework.stereotype.Repository;
 import com.foodie.model.FoodOrders;
 
 @Repository
-public interface FoodOrderRepository extends JpaRepository<FoodOrders, Long>{
-
+public interface FoodOrderRepository extends JpaRepository<FoodOrders, Long> {
 
 }
-
-

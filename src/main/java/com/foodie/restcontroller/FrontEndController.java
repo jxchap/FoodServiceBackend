@@ -1,9 +1,5 @@
 package com.foodie.restcontroller;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +18,7 @@ import com.foodie.repository.FoodOrderRepository;
 import com.foodie.repository.SMSValidationTempKeyRepository;
 import com.foodie.service.Mail;
 import com.foodie.service.Misc;
+import com.foodie.service.RepositoryService;
 import com.foodie.service.SMS;
 import com.foodie.service.Validation;
 
@@ -31,6 +28,9 @@ public class FrontEndController {
 
 	@Autowired
 	FoodOrderRepository foodOrderRepository;
+
+	@Autowired
+	RepositoryService respositoryService;
 
 	@Autowired
 	SMSValidationTempKeyRepository smsvalidationrepository;
@@ -49,32 +49,27 @@ public class FrontEndController {
 
 	@GetMapping(path = "/orders")
 	public ResponseEntity<?> getFoodOrders() {
-		List<FoodOrders> finalFoodOrderList = new ArrayList<FoodOrders>();
-		List<FoodOrders> tempFoodOrdersList = foodOrderRepository.findAll();
-		for (FoodOrders foodOrder : tempFoodOrdersList) {
-			if (foodOrder.isFulfilled() == !true) {
-				finalFoodOrderList.add(foodOrder);
-			}
-		}
-		return new ResponseEntity<>(finalFoodOrderList, HttpStatus.OK);
+		
+		return new ResponseEntity<>(respositoryService.getUnfulfilledFoodOrders(), HttpStatus.OK);
+		
 	}
 
 	@GetMapping(path = "/orders/{databaseID}")
-	public FoodOrders getSingleFoodOrder(@PathVariable long databaseID) {
-		Optional<FoodOrders> databaseFoodOrder = foodOrderRepository.findById(databaseID);
-		return databaseFoodOrder.get();
+	public ResponseEntity<?> getSingleFoodOrder(@PathVariable long databaseID) {
+
+		return new ResponseEntity<>(respositoryService.getSingleFoodOrder(databaseID), HttpStatus.OK);
 	}
 
 	@DeleteMapping(path = "/deleteorders/{databaseID}")
 	public ResponseEntity<?> deleteFoodOrder(@PathVariable long databaseID) {
-		foodOrderRepository.deleteById(databaseID);
+		respositoryService.deleteFoodOrder(databaseID);
 		return new ResponseEntity<>(HttpStatus.OK);
 	}
 
 	@PostMapping(path = "/order-finished")
 	public ResponseEntity<?> createFoodOrder(@RequestBody FoodOrders foodOrder) {
 		if (validator.compareIncomingFoodOrderToSMSKey(foodOrder) && validator.areNewFoodOrderFieldsValid(foodOrder)) {
-			restfulservicer.addOrderToDatabase(foodOrder);
+			respositoryService.addOrderToDatabase(foodOrder);
 			validator.deleteUsedSMSValidationKey(foodOrder.getName(), foodOrder.getSMSValidationKey());
 			mailservicer.sendEmail(foodOrder);
 			return new ResponseEntity<>(HttpStatus.OK);
